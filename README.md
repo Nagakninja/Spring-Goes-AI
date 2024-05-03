@@ -16,6 +16,7 @@ Whether you want to add chatbots to your app, generate recommendations, or analy
     - SimplePrompt
     - DadJokesController
     - YouTube
+- OutputParser
 
 ## Getting Started Demo
 
