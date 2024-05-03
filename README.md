@@ -13,9 +13,10 @@ Whether you want to add chatbots to your app, generate recommendations, or analy
 
 - Getting Started Demo
 - Prompts Demo
-  - SimplePrompt
-  - DadJokesController
-  - YouTube
+    - SimplePrompt
+    - DadJokesController
+    - YouTube
+- OutputParser
 
 ## Getting Started Demo
 
@@ -136,4 +137,101 @@ public String findPopularYouTubers(@RequestParam(value = "genre", defaultValue =
         Prompt prompt = promptTemplate.create(Map.of("genre", genre));
         return chatClient.call(prompt).getResult().getOutput().getContent();
         }
+```
+## OutputParser
+
+If you make a call with the following prompt and ask for the content you will get it back as a String
+
+```java
+@GetMapping("/ken")
+public Generation getBooksByKen() {
+    String promptMessage = """
+            Generate a list of books written by the author {author}.
+            """;
+
+    PromptTemplate promptTemplate = new PromptTemplate(promptMessage, Map.of("author","Ken Kousen"));
+    Prompt prompt = promptTemplate.create();
+    return chatClient.call(prompt).getResult().getOutput().getContent();
+}
+```
+
+Request
+
+```
+http :8080/api/books/craig
+```
+
+Response
+
+1. "Spring in Action"
+2. "Spring Boot in Action"
+3. "Modular Java: Creating Flexible Applications with OSGi and Spring"
+4. "XDoclet in Action"
+5. "Spring Microservices in Action"
+6. "Getting started with Spring Framework: a hands-on guide to begin developing applications using Spring Framework"
+7. "Spring in Action, Fifth Edition"
+8. "Spring in Action, Fourth Edition"
+9. "Spring Boot in Action, Second Edition"
+
+You can ask for a JSON formatted String:
+
+```java
+String promptMessage = """
+        Generate a list of books written by the author {author}. Please return it to me in JSON format.
+        """;
+```
+
+And you will get this back, but then you still need to convert this raw JSON into an object.
+
+```json
+[
+  {
+    "author": "Craig Walls",
+    "title": "Spring in Action",
+    "year": "2014"
+  },
+  {
+    "author": "Craig Walls",
+    "title": "Spring Boot in Action",
+    "year": "2015"
+  },
+  {
+    "author": "Craig Walls",
+    "title": "Spring in Action, Fifth Edition",
+    "year": "2018"
+  },
+  {
+    "author": "Craig Walls",
+    "title": "Modular Java: Creating Flexible Applications with Osgi and Spring",
+    "year": "2009"
+  },
+  {
+    "author": "Craig Walls",
+    "title": "XDoclet in Action",
+    "year": "2003"
+  }
+]
+```
+
+In the final demo we use the `BeanOutputParser`
+
+```java
+    @GetMapping("/by-author")
+    public Author getBooksByAuthor(@RequestParam(value = "author", defaultValue = "Ken Kousen") String author) {
+        var outputParser = new BeanOutputParser<>(Author.class);
+        String format = outputParser.getFormat();
+        System.out.println("format = " + format);
+
+        String promptMessage = """
+                Generate a list of books written by the author {author}.
+                {format}
+                """;
+
+        PromptTemplate promptTemplate = new PromptTemplate(promptMessage, Map.of("author",author,"format", format));
+        Prompt prompt = promptTemplate.create();
+
+        Generation generation = chatClient.call(prompt).getResult();
+        Author authorResult = outputParser.parse(generation.getOutput().getContent());
+        return authorResult;
+    }
 ```
