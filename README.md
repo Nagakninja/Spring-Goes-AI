@@ -350,3 +350,82 @@ Keep-Alive: timeout=60
 
 The next three Summer Olympic Games will be held in Paris, France in 2024, Los Angeles, USA in 2028, and Brisbane, Australia in 2032.
 ```
+
+### Function Demo
+
+The code related to this demo is in the `functions` package. In this demo there is a `CityController` with a
+`/cities` endpoint that will answer questions about cities around the world.
+
+Request
+
+```
+http :8080/cities message=="What is the largest city in Telangana"
+```
+
+Response
+
+```
+HTTP/1.1 200 
+Connection: keep-alive
+Content-Length: 51
+Content-Type: text/plain;charset=UTF-8
+Date: Sun, 05 May 2024 04:12:23 GMT
+Keep-Alive: timeout=60
+
+The largest city in Telangana, India, is Hyderabad.
+```
+
+If you were to ask it what the current weather is like in Hyderabad it wouldn't know the answer to that.
+
+Request
+
+```
+http :8080/cities message=="What is current weather in Hyderabad"
+```
+
+Response
+
+```
+HTTP/1.1 200 
+Connection: keep-alive
+Content-Length: 192
+Content-Type: text/plain;charset=UTF-8
+Date: Sun, 05 May 2024 04:12:33 GMT
+Keep-Alive: timeout=60
+
+As an AI, I'm unable to provide real-time information such as current weather conditions. I recommend checking a reputable weather website or app for the most accurate, up-to-date information.
+
+```
+
+We can define a function by declaring a bean and the weather service will be responsible for determining the current weather.
+
+```java
+@Bean
+@Description("Get the current weather conditions for the given city.")
+public Function<WeatherService.Request,WeatherService.Response> currentWeatherFunction() {
+    return new WeatherService(props);
+}
+```
+
+Now try to invoke the endpoint /cities/weather leveraging currentWeather() function responding with weather data of given city.
+
+
+Request
+
+```
+http :8080/cities/weather message=="What is current weather in Hyderabad"
+```
+
+Response
+
+```
+HTTP/1.1 200 
+Connection: keep-alive
+Content-Length: 130
+Content-Type: text/plain;charset=UTF-8
+Date: Sun, 05 May 2024 04:12:56 GMT
+Keep-Alive: timeout=60
+
+The current weather in Hyderabad, India is sunny with a temperature of 95.0°F. The wind speed is 2.2 mph and the humidity is 53%.
+```
+
