@@ -20,6 +20,7 @@ Whether you want to add chatbots to your app, generate recommendations, or analy
 - Bring You Own Data
   - Stuff the Prompt
   - RAG Demo
+  - Function
 
 
 ## Getting Started Demo
