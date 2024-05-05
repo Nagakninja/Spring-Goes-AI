@@ -187,6 +187,7 @@ public String findPopularYouTubers(@RequestParam(value = "genre", defaultValue =
         return chatClient.call(prompt).getResult().getOutput().getContent();
         }
 ```
+
 ## OutputParser
 
 If you make a call with the following prompt and ask for the content you will get it back as a String
