@@ -19,6 +19,7 @@ Whether you want to add chatbots to your app, generate recommendations, or analy
 - OutputParser
 - Bring You Own Data
   - Stuff the Prompt
+  - RAG Demo
 
 
 ## Getting Started Demo
@@ -129,6 +130,51 @@ public String findPopularYouTubersStepOne(@RequestParam(value = "genre", default
         Prompt prompt = promptTemplate.create(Map.of("genre",genre));
         return chatClient.call(prompt).getResult().getOutput().getContent();
         }
+```
+### RAG Demo
+
+
+The RAG Demo uses a `SimpleVectorStore` to store some FAQs about the upcoming Summer Olympics in Paris.
+
+```java
+@Bean
+SimpleVectorStore simpleVectorStore(EmbeddingClient embeddingClient) {
+    var simpleVectorStore = new SimpleVectorStore(embeddingClient);
+    var vectorStoreFile = new File(vectorStorePath);
+    if (vectorStoreFile.exists()) {
+        log.info("Vector Store File Exists,");
+        simpleVectorStore.load(vectorStoreFile);
+    } else {
+        log.info("Vector Store File Does Not Exist, load documents");
+        TextReader textReader = new TextReader(faq);
+        textReader.getCustomMetadata().put("filename", "olympic-faq.txt");
+        List<Document> documents = textReader.get();
+        TextSplitter textSplitter = new TokenTextSplitter();
+        List<Document> splitDocuments = textSplitter.apply(documents);
+        simpleVectorStore.add(splitDocuments);
+        simpleVectorStore.save(vectorStoreFile);
+    }
+    return simpleVectorStore;
+}
+```
+
+Request
+
+```
+http :8080/faq message=="Where are the next 3 summer games?"
+```
+
+Response
+
+```
+HTTP/1.1 200 
+Connection: keep-alive
+Content-Length: 133
+Content-Type: text/plain;charset=UTF-8
+Date: Thu, 28 Mar 2024 12:18:27 GMT
+Keep-Alive: timeout=60
+
+The next three Summer Olympic Games will be held in Paris, France in 2024, Los Angeles, USA in 2028, and Brisbane, Australia in 2032.
 ```
 
 And then externalizing that to a classpath resource
@@ -301,4 +347,50 @@ Date: Thu, 28 Mar 2024 02:00:34 GMT
 Keep-Alive: timeout=60
 
 Archery, athletics, badminton, basketball , basketball 3×3, boxing, canoe slalom, canoe sprint, road cycling, cycling track, mountain biking, BMX freestyle, BMX racing, equestrian, fencing, football, golf, artistic gymnastics, rhythmic gymnastics, trampoline, handball, hockey, judo, modern pentathlon, rowing, rugby, sailing, shooting, table tennis, taekwondo, tennis, triathlon, volleyball, beach volleyball, diving, marathon swimming, artistic swimming, swimming, water polo, weightlifting,wrestling,breaking, sport climbing, skateboarding, and surfing.
+```
+
+### RAG Demo
+
+
+The RAG Demo uses a `SimpleVectorStore` to store some FAQs about the upcoming Summer Olympics in Paris.
+
+```java
+@Bean
+SimpleVectorStore simpleVectorStore(EmbeddingClient embeddingClient) {
+    var simpleVectorStore = new SimpleVectorStore(embeddingClient);
+    var vectorStoreFile = new File(vectorStorePath);
+    if (vectorStoreFile.exists()) {
+        log.info("Vector Store File Exists,");
+        simpleVectorStore.load(vectorStoreFile);
+    } else {
+        log.info("Vector Store File Does Not Exist, load documents");
+        TextReader textReader = new TextReader(faq);
+        textReader.getCustomMetadata().put("filename", "olympic-faq.txt");
+        List<Document> documents = textReader.get();
+        TextSplitter textSplitter = new TokenTextSplitter();
+        List<Document> splitDocuments = textSplitter.apply(documents);
+        simpleVectorStore.add(splitDocuments);
+        simpleVectorStore.save(vectorStoreFile);
+    }
+    return simpleVectorStore;
+}
+```
+
+Request
+
+```
+http :8080/faq message=="Where are the next 3 summer games?"
+```
+
+Response
+
+```
+HTTP/1.1 200 
+Connection: keep-alive
+Content-Length: 133
+Content-Type: text/plain;charset=UTF-8
+Date: Thu, 28 Mar 2024 12:18:27 GMT
+Keep-Alive: timeout=60
+
+The next three Summer Olympic Games will be held in Paris, France in 2024, Los Angeles, USA in 2028, and Brisbane, Australia in 2032.
 ```
