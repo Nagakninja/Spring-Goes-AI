@@ -17,6 +17,9 @@ Whether you want to add chatbots to your app, generate recommendations, or analy
     - DadJokesController
     - YouTube
 - OutputParser
+- Bring You Own Data
+  - Stuff the Prompt
+
 
 ## Getting Started Demo
 
@@ -234,4 +237,68 @@ In the final demo we use the `BeanOutputParser`
         Author authorResult = outputParser.parse(generation.getOutput().getContent());
         return authorResult;
     }
+```
+
+##  Bring Your Own Data Demos
+
+How to use your own data in AI applications
+
+### Stuffing the Prompt
+
+Request
+
+```
+http :8080/olympics/2024
+```
+
+Response
+
+```
+HTTP/1.1 200
+Connection: keep-alive
+Content-Length: 46
+Content-Type: text/plain;charset=UTF-8
+Date: Wed, 27 Mar 2024 20:52:41 GMT
+Keep-Alive: timeout=60
+
+I'm sorry but I don't know the answer to that.
+```
+
+Adding context to the prompt:
+
+```java
+@GetMapping("/2024")
+public String get2024OlympicSports(
+        @RequestParam(value = "message", defaultValue = "What sports are being included in the 2024 Summer Olympics?") String message,
+        @RequestParam(value = "stuffit", defaultValue = "false") boolean stuffit
+) {
+
+    PromptTemplate promptTemplate = new PromptTemplate(olympicSportsResource);
+    Map<String,Object> map  = new HashMap<>();
+    map.put("question",message);
+    if(stuffit) {
+        map.put("context", docsToStuffResource);
+    } else {
+        map.put("context", "");
+    }
+
+    Prompt prompt = promptTemplate.create(map);
+    ChatResponse response = chatClient.call(prompt);
+
+    return response.getResult().getOutput().getContent();
+}
+```
+
+Response
+
+```
+~ 🚀 http :8080/olympics/2024 stuffit==true
+HTTP/1.1 200
+Connection: keep-alive
+Content-Length: 557
+Content-Type: text/plain;charset=UTF-8
+Date: Thu, 28 Mar 2024 02:00:34 GMT
+Keep-Alive: timeout=60
+
+Archery, athletics, badminton, basketball , basketball 3×3, boxing, canoe slalom, canoe sprint, road cycling, cycling track, mountain biking, BMX freestyle, BMX racing, equestrian, fencing, football, golf, artistic gymnastics, rhythmic gymnastics, trampoline, handball, hockey, judo, modern pentathlon, rowing, rugby, sailing, shooting, table tennis, taekwondo, tennis, triathlon, volleyball, beach volleyball, diving, marathon swimming, artistic swimming, swimming, water polo, weightlifting,wrestling,breaking, sport climbing, skateboarding, and surfing.
 ```
